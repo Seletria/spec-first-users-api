@@ -4,14 +4,14 @@ Guidance for AI coding agents working in this repository.
 
 ## Project Overview
 
-* REST API built with Express (entry point: `index.js`, routes: `routes/users.routes.js` + `routes/healthCheck.routes.js`)
-* Data storage: in-memory array (see `routes/users.routes.js`)
+* REST API built with Express (entry point: `api/index.js`, routes: `api/routes/users.routes.js` + `api/routes/healthCheck.routes.js`)
+* Data storage: in-memory array (see `api/routes/users.routes.js`)
 * Test infrastructure: not set up yet
 * API testing framework: Playwright
 
 ## API Endpoints
 
-Base URL: `http://localhost:3000` (see `index.js`). Routes are defined in `routes/users.routes.js` and `routes/healthCheck.routes.js` using Express Router.
+Base URL: `http://localhost:3000` (see `api/index.js`). Routes are defined in `api/routes/users.routes.js` and `api/routes/healthCheck.routes.js` using Express Router.
 
 | Method | Endpoint    | Description                                                      | Success            | Errors                                |
 | ------ | ----------- | ---------------------------------------------------------------- | ------------------ | ------------------------------------- |
@@ -23,11 +23,11 @@ Base URL: `http://localhost:3000` (see `index.js`). Routes are defined in `route
 
 ### Implementation Notes
 
-* User data currently lives in an in-memory array seeded at module load (`users` in `routes/users.routes.js`).
+* User data currently lives in an in-memory array seeded at module load (`users` in `api/routes/users.routes.js`).
 * The data resets when the server restarts.
 * New IDs are generated as `max(existing ids) + 1`.
 * Name validation is centralized in `isValidName` (`typeof string && trim !== ''`).
-* Error messages come from the shared `MESSAGES` constant in `routes/users.routes.js`.
+* Error messages come from the shared `MESSAGES` constant in `api/routes/users.routes.js`.
 
 ## Permissions
 
@@ -76,7 +76,7 @@ permission:
 
 When helping develop the API:
 
-* Respect existing patterns in `index.js` and `routes/`.
+* Respect existing patterns in `api/index.js` and `api/routes/`.
 * Do not restructure the API without explicit approval.
 * Propose endpoint/route design first and wait for approval before implementing.
 * Prefer small, incremental changes.

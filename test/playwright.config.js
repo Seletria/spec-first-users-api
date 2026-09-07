@@ -70,7 +70,8 @@ module.exports = defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'node index.js',
+    command: 'npm start',
+    cwd: '../api',
     port: 3000,
     reuseExistingServer: false,
     timeout: 10000,

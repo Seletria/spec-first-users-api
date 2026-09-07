@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "playwright test"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +12,5 @@
   "type": "commonjs",
   "dependencies": {
     "express": "^5.2.1"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.62.1",
-    "@types/node": "^26.4.0"
   }
 }
