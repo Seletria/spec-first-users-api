@@ -1,4 +1,5 @@
 const express = require('express');
+const { findUserById, isEmailTaken } = require('./users.helpers');
 const router = express.Router();
 
 const users = [
@@ -40,7 +41,7 @@ router.get('/', (req, res) => {
 
 router.get('/:id', (req, res) => {
   const id = Number(req.params.id);
-  const user = users.find(user => user.id === id);
+  const user = findUserById(users, id);
 
   if (!user) {
     return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
@@ -60,7 +61,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ message: MESSAGES.EMAIL_REQUIRED });
   }
 
-  if (users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+  if (isEmailTaken(users, email)) {
     return res.status(409).json({ message: MESSAGES.EMAIL_TAKEN });
   }
 
@@ -68,14 +69,15 @@ router.post('/', (req, res) => {
     return res.status(400).json({ message: MESSAGES.INVALID_ROLE });
   }
 
+  const timestamp = new Date().toISOString();
   const newUser = {
     id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
     name: name.trim(),
     email,
     role: role !== undefined ? normalizeRole(role) : 'user',
     active: active !== undefined ? active : true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    createdAt: timestamp,
+    updatedAt: timestamp
   };
   users.push(newUser);
   res.status(201).json(newUser);
@@ -85,7 +87,7 @@ router.put('/:id', (req, res) => {
   const id = Number(req.params.id);
   const { name, role, active, email } = req.body;
 
-  const user = users.find(user => user.id === id);
+  const user = findUserById(users, id);
   if (!user) {
     return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
   }
@@ -98,7 +100,7 @@ router.put('/:id', (req, res) => {
     if (!isValidEmail(email)) {
       return res.status(400).json({ message: MESSAGES.EMAIL_REQUIRED });
     }
-    if (users.some(u => u.email && u.id !== user.id && u.email.toLowerCase() === email.toLowerCase())) {
+    if (isEmailTaken(users, email, user.id)) {
       return res.status(409).json({ message: MESSAGES.EMAIL_TAKEN });
     }
     user.email = email;
