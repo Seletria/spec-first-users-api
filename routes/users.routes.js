@@ -1,11 +1,13 @@
 const express = require('express');
-const { findUserById, isEmailTaken } = require('./users.helpers');
+const { findUserById, findUserIndex, isEmailTaken, generateUserId } = require('./users.helpers');
 const router = express.Router();
 
+const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
+
 const users = [
-  { id: 1, name: 'Ayşe', role: 'admin', active: true, createdAt: new Date('2026-01-01T00:00:00.000Z').toISOString(), updatedAt: new Date('2026-01-01T00:00:00.000Z').toISOString() },
-  { id: 2, name: 'Mehmet', role: 'user', active: true, createdAt: new Date('2026-01-01T00:00:00.000Z').toISOString(), updatedAt: new Date('2026-01-01T00:00:00.000Z').toISOString() },
-  { id: 3, name: 'Zeynep', role: 'user', active: true, createdAt: new Date('2026-01-01T00:00:00.000Z').toISOString(), updatedAt: new Date('2026-01-01T00:00:00.000Z').toISOString() }
+  { id: 1, name: 'Ayşe', role: 'admin', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP },
+  { id: 2, name: 'Mehmet', role: 'user', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP },
+  { id: 3, name: 'Zeynep', role: 'user', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP }
 ];
 
 const MESSAGES = {
@@ -71,7 +73,7 @@ router.post('/', (req, res) => {
 
   const timestamp = new Date().toISOString();
   const newUser = {
-    id: users.length ? Math.max(...users.map(u => u.id)) + 1 : 1,
+    id: generateUserId(users),
     name: name.trim(),
     email,
     role: role !== undefined ? normalizeRole(role) : 'user',
@@ -123,7 +125,7 @@ router.put('/:id', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   const id = Number(req.params.id);
-  const index = users.findIndex(user => user.id === id);
+  const index = findUserIndex(users, id);
   if (index === -1) {
     return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
   }
