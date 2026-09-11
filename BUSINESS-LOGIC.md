@@ -9,7 +9,7 @@
 - New users are assigned a unique ID automatically
 - Name is required and must be a non-empty string
 - Name is trimmed before saving
-- Role is optional; if provided it must be one of `admin` or `user` (400 if invalid)
+- Role is optional; if provided it must be one of `admin` or `user` or `moderator` (400 if invalid)
 - If role is not provided, it defaults to `user`
 - `email` is required and must be a valid email format (400 if invalid)
 - `email` must be unique across all users (409 if already taken)
@@ -20,7 +20,7 @@
 - User must exist (404 if not found)
 - Name is required and must be a non-empty string
 - Name is trimmed before saving
-- Role is optional; if provided it must be one of `admin` or `user` (400 if invalid)
+- Role is optional; if provided it must be one of `admin` or `user` or `moderator` (400 if invalid)
 - If role is not provided, the existing role is preserved (does not revert to default)
 - User not found (404) takes priority over name validation (400)
 - `updatedAt` is refreshed automatically (ISO 8601 timestamp) on every successful update
