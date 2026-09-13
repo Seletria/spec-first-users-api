@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const usersRoutes = require('./routes/users.routes');
 const healthCheck = require('./routes/healthCheck.routes');
