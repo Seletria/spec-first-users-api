@@ -1,4 +1,5 @@
 require('dotenv').config();
+const { AppError } = require('./errors/AppError');
 
 const express = require('express');
 const usersRoutes = require('./routes/users.routes');
@@ -19,6 +20,11 @@ app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
     console.error('[JSON Parse Error]', err.message);
     return res.status(400).json({ message: 'Invalid JSON payload' });
+  }
+
+  if (err instanceof AppError) {
+    console.error('[App Error]', err.message);
+    return res.status(err.statusCode).json({ message: err.message });
   }
 
   console.error('[Unhandled Error]', err.stack);
