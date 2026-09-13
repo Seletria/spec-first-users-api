@@ -1,4 +1,5 @@
 const pool = require('../db/pool');
+const { DuplicateEmailError } = require('../errors/DuplicateEmailError');
 
 async function getAllUsers() {
   const result = await pool.query('SELECT * FROM users');
@@ -16,7 +17,7 @@ async function createUser(name, email) {
     return result.rows[0];
   } catch (error) {
     if (error.code === '23505') {
-      throw new Error('This email address is already registered.');
+      throw new DuplicateEmailError();
     }
     throw error;
   }
