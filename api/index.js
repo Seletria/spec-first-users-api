@@ -4,6 +4,7 @@ const { AppError } = require('./errors/AppError');
 const express = require('express');
 const usersRoutes = require('./routes/users.routes');
 const healthCheck = require('./routes/healthCheck.routes');
+const pool = require('./db/pool');
 
 const app = express();
 const port = 3000;
@@ -43,3 +44,21 @@ server.on('error', (err) => {
   }
   process.exit(1);
 });
+
+let isShuttingDown = false;
+
+function shutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log(`[Shutdown] Received ${signal}, shutting down gracefully...`);
+  pool.end().then(() => {
+    server.close(() => {
+      console.log('[Shutdown] HTTP server closed.');
+      process.exit(0);
+    });
+  });
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
