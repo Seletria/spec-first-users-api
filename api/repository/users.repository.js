@@ -11,9 +11,9 @@ async function getUserById(id) {
   return result.rows[0];
 }
 
-async function createUser(name, email) {
+async function createUser(name, email, role = 'user', active = true) {
   try {
-    const result = await pool.query('INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *', [name, email]);
+    const result = await pool.query('INSERT INTO users (name, email, role, active) VALUES ($1, $2, $3, $4) RETURNING *', [name.trim(), email.toLowerCase(), role, active]);
     return result.rows[0];
   } catch (error) {
     if (error.code === '23505') {

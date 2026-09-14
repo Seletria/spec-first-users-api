@@ -1,5 +1,6 @@
 const express = require('express');
-const { findUserById, findUserIndex, isEmailTaken, generateUserId } = require('./users.helpers');
+const { findUserById, findUserIndex, isEmailTaken } = require('./users.helpers');
+const { createUser } = require('../repository/users.repository');
 const router = express.Router();
 
 const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
@@ -52,7 +53,7 @@ router.get('/:id', (req, res) => {
   res.json(user);
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const { name, role, active, email } = req.body;
 
   if (!isValidName(name)) {
@@ -63,25 +64,14 @@ router.post('/', (req, res) => {
     return res.status(400).json({ message: MESSAGES.EMAIL_REQUIRED });
   }
 
-  if (isEmailTaken(users, email)) {
-    return res.status(409).json({ message: MESSAGES.EMAIL_TAKEN });
-  }
-
   if (role !== undefined && !isValidRole(role)) {
     return res.status(400).json({ message: MESSAGES.INVALID_ROLE });
   }
 
-  const timestamp = new Date().toISOString();
-  const newUser = {
-    id: generateUserId(users),
-    name: name.trim(),
-    email,
-    role: role !== undefined ? normalizeRole(role) : 'user',
-    active: active !== undefined ? active : true,
-    createdAt: timestamp,
-    updatedAt: timestamp
-  };
-  users.push(newUser);
+  const normalizedRole = role !== undefined ? normalizeRole(role) : 'user';
+  const resolvedActive = active !== undefined ? active : true;
+
+  const newUser = await createUser(name, email, normalizedRole, resolvedActive);
   res.status(201).json(newUser);
 });
 
