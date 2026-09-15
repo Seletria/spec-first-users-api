@@ -1,6 +1,6 @@
 const express = require('express');
 const { findUserById, findUserIndex, isEmailTaken } = require('./users.helpers');
-const { createUser } = require('../repository/users.repository');
+const { createUser, getAllUsers, getUserById } = require('../repository/users.repository');
 const router = express.Router();
 
 const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
@@ -17,6 +17,11 @@ const MESSAGES = {
   INVALID_ROLE: 'Invalid role',
   EMAIL_REQUIRED: 'Email is required and must be a valid email address',
   EMAIL_TAKEN: 'Email is already taken',
+  INVALID_ID: 'Invalid user id',
+};
+
+const isValidId = (id) => {
+  return Number.isInteger(id) && id > 0;
 };
 
 const isValidEmail = (email) => {
@@ -38,13 +43,19 @@ const normalizeRole = (role) => {
   return role.toLowerCase();
 };
 
-router.get('/', (req, res) => {
-  res.json(users.filter(user => user.active));
+router.get('/', async (req, res) => {
+  const users = await getAllUsers();
+  res.json(users);
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const user = findUserById(users, id);
+
+  if (!isValidId(id)) {
+    return res.status(400).json({ message: MESSAGES.INVALID_ID });
+  }
+
+  const user = await getUserById(id);
 
   if (!user) {
     return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });

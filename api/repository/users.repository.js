@@ -2,7 +2,7 @@ const pool = require('../db/pool');
 const { DuplicateEmailError } = require('../errors/DuplicateEmailError');
 
 async function getAllUsers() {
-  const result = await pool.query('SELECT * FROM users');
+  const result = await pool.query('SELECT * FROM users WHERE active = true');
   return result.rows;
 }
 
