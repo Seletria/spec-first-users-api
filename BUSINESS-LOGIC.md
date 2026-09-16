@@ -26,8 +26,11 @@
 - `updatedAt` is refreshed automatically (ISO 8601 timestamp) on every successful update
 
 ### User Deletion
-- User must exist (404 if not found)
-- After deletion, user cannot be retrieved (GET returns 404)
+- Deletion is a SOFT delete: the row is kept in the table, only `active` is set to `false`
+- 404 only when the id never existed in the database at all
+- `GET /users/:id` still returns the deleted user (with `active: false`); only the `GET /users` list excludes them (`WHERE active = true`)
+- DELETE is idempotent: deleting an already-inactive user still returns 204
+- Reasoning for soft delete: reversibility, audit trail, and avoiding foreign-key issues on related data
 
 ### Name Validation
 - Must be a string
@@ -70,8 +73,9 @@
 ### User Lifecycle
 - Create a user → GET returns the user
 - Update a user → GET returns updated data
-- Delete a user → GET returns 404
-- Delete a user twice → Second DELETE returns 404
+- Delete a user → `GET /users/:id` still returns the user with `active: false`; the user is excluded from `GET /users`
+- Delete a user twice → second DELETE still returns 204 (idempotent)
+- DELETE on an id that never existed in the database → 404
 
 ### Validation Priority
 - PUT with non-existent user and invalid name → 404 (user not found)
@@ -106,13 +110,15 @@
 
 | # | Scenario | Request | Result |
 |---|---|---|---|
-| 1 | Non-numeric id | `GET /users/abc` | 404 (`NaN` never matches) |
-| 2 | Negative id | `GET /users/-1` | 404 |
-| 3 | Decimal id | `GET /users/1.5` | 404 |
-| 4 | Extremely large id | `GET /users/99999999999999999999` | 404, no crash |
+| 1 | Non-numeric id | `GET /users/abc` | 400 |
+| 2 | Negative id | `GET /users/-1` | 400 |
+| 3 | Decimal id | `GET /users/1.5` | 400 |
+| 4 | Extremely large id | `GET /users/99999999999999999999` | 400 — rejected by the `POSTGRES_INT4_MAX` (2147483647) bound in the `isValidId` guard before it ever reaches the database |
 | 5 | Empty id / trailing slash | `GET /users/` | 200 — falls through to list route, not `:id` route |
-| 6 | Whitespace id | `GET /users/%20` | 404 (`Number(" ") === 0`, accidentally safe since id `0` doesn't exist) |
-| 7 | Injection attempt | `GET /users/1;DROP TABLE users` (URL-encoded) | 404, no crash. **Currently safe only because there is no SQL layer** — must be re-tested once `better-sqlite3` is wired in |
+| 6 | Whitespace id | `GET /users/%20` | 400 |
+| 7 | Injection attempt | `GET /users/1;DROP TABLE users` (URL-encoded) | 400, no crash — `Number("1;DROP TABLE users")` is `NaN`, rejected by the guard before any SQL runs; pg's parameterized queries protect the SQL layer |
+
+> All `:id` routes (`GET`, `PUT`, `DELETE`) share the `isValidId` guard: `Number.isInteger(id) && id > 0 && id <= POSTGRES_INT4_MAX` (2147483647). The upper bound exists because Postgres `int4` overflows above 2147483647 — without it, ids up to `Number.MAX_SAFE_INTEGER` passed the guard and crashed the query with a 500. This was a real, observed bug, not hypothetical.
 
 ### Malformed Input / Response Consistency
 
