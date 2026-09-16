@@ -20,7 +20,8 @@ const MESSAGES = {
 };
 
 const isValidId = (id) => {
-  return Number.isInteger(id) && id > 0;
+  const POSTGRES_INT4_MAX = 2147483647;
+  return Number.isInteger(id) && id > 0 && id <= POSTGRES_INT4_MAX;
 };
 
 const isValidEmail = (email) => {
