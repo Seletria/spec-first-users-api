@@ -1,5 +1,4 @@
 const express = require('express');
-const { findUserById, findUserIndex, isEmailTaken } = require('./users.helpers');
 const { createUser, getAllUsers, getUserById, updateUser, deactivateUser } = require('../repository/users.repository');
 const router = express.Router();
 
