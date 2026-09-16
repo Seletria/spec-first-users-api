@@ -22,7 +22,6 @@
 - Name is trimmed before saving
 - Role is optional; if provided it must be one of `admin` or `user` or `moderator` (400 if invalid)
 - If role is not provided, the existing role is preserved (does not revert to default)
-- User not found (404) takes priority over name validation (400)
 - `updated_at` is refreshed automatically (ISO 8601 timestamp) on every successful update
 
 ### User Deletion
@@ -80,8 +79,9 @@
 - DELETE on an id that never existed in the database → 404
 
 ### Validation Priority
-- PUT with non-existent user and invalid name → 404 (user not found)
-- PUT with existing user and invalid name → 400 (name required)
+- PUT with non-existent user and invalid name → 400 (not 404). All request-format validation (`isValidId`, `isValidName`, `isValidEmail`, `isValidRole`) runs before the database existence check, on both POST and PUT. Malformed requests never reach the database.
+- Rationale: (1) fail-fast — no DB query for a request that is invalid on its face, and (2) it prevents validation errors from being used as an oracle to enumerate which ids exist (returning 404 only for invalid ids while returning 400 for malformed-but-existing ones would let an attacker probe id existence via malformed bodies).
+- PUT with existing user and invalid name → 400 (unchanged)
 
 ### Edge Cases
 - Create user with whitespace-only name → 400
