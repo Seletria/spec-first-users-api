@@ -50,9 +50,15 @@ async function updateUser(id, name, email, role, active) {
   }
 }
 
+async function deactivateUser(id) {
+  const result = await pool.query('UPDATE users SET active = false WHERE id = $1 RETURNING *', [id]);
+  return result.rows[0];
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
   createUser,
   updateUser,
+  deactivateUser,
 };

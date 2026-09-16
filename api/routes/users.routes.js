@@ -1,6 +1,6 @@
 const express = require('express');
 const { findUserById, findUserIndex, isEmailTaken } = require('./users.helpers');
-const { createUser, getAllUsers, getUserById, updateUser } = require('../repository/users.repository');
+const { createUser, getAllUsers, getUserById, updateUser, deactivateUser } = require('../repository/users.repository');
 const router = express.Router();
 
 const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
@@ -118,13 +118,18 @@ router.put('/:id', async (req, res) => {
   res.json(updatedUser);
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const index = findUserIndex(users, id);
-  if (index === -1) {
+
+  if (!isValidId(id)) {
+    return res.status(400).json({ message: MESSAGES.INVALID_ID });
+  }
+
+  const result = await deactivateUser(id)
+
+  if (!result) {
     return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
   }
-  users.splice(index, 1);
   res.status(204).send();
 });
 
