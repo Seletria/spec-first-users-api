@@ -23,8 +23,36 @@ async function createUser(name, email, role = 'user', active = true) {
   }
 }
 
+async function updateUser(id, name, email, role, active) {
+  const normalizedEmail = email !== undefined ? email.toLowerCase() : null;
+  const normalizedRole = role !== undefined ? role : null;
+  const normalizedActive = active !== undefined ? active : null;
+
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET
+         name = $1,
+         email = COALESCE($2, email),
+         role = COALESCE($3, role),
+         active = COALESCE($4, active),
+         updated_at = NOW()
+       WHERE id = $5
+       RETURNING *`,
+      [name.trim(), normalizedEmail, normalizedRole, normalizedActive, id]
+    );
+    return result.rows[0];
+  } catch (error) {
+    if (error.code === '23505') {
+      throw new DuplicateEmailError();
+    }
+    throw error;
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUserById,
-  createUser
+  createUser,
+  updateUser,
 };

@@ -1,6 +1,6 @@
 const express = require('express');
 const { findUserById, findUserIndex, isEmailTaken } = require('./users.helpers');
-const { createUser, getAllUsers, getUserById } = require('../repository/users.repository');
+const { createUser, getAllUsers, getUserById, updateUser } = require('../repository/users.repository');
 const router = express.Router();
 
 const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
@@ -86,13 +86,12 @@ router.post('/', async (req, res) => {
   res.status(201).json(newUser);
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   const id = Number(req.params.id);
   const { name, role, active, email } = req.body;
 
-  const user = findUserById(users, id);
-  if (!user) {
-    return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
+  if (!isValidId(id)) {
+    return res.status(400).json({ message: MESSAGES.INVALID_ID });
   }
 
   if (!isValidName(name)) {
@@ -103,25 +102,20 @@ router.put('/:id', (req, res) => {
     if (!isValidEmail(email)) {
       return res.status(400).json({ message: MESSAGES.EMAIL_REQUIRED });
     }
-    if (isEmailTaken(users, email, user.id)) {
-      return res.status(409).json({ message: MESSAGES.EMAIL_TAKEN });
-    }
-    user.email = email;
   }
 
   if (role !== undefined && !isValidRole(role)) {
     return res.status(400).json({ message: MESSAGES.INVALID_ROLE });
   }
 
-  user.name = name.trim();
-  if (role !== undefined) {
-    user.role = normalizeRole(role);
+  const normalizedRole = role !== undefined ? normalizeRole(role) : undefined;
+
+  const updatedUser = await updateUser(id, name, email, normalizedRole, active);
+  if (!updatedUser) {
+    return res.status(404).json({ message: MESSAGES.USER_NOT_FOUND });
   }
-  if (active !== undefined) {
-    user.active = active;
-  }
-  user.updatedAt = new Date().toISOString();
-  res.json(user);
+
+  res.json(updatedUser);
 });
 
 router.delete('/:id', (req, res) => {
