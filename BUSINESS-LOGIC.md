@@ -14,7 +14,7 @@
 - `email` is required and must be a valid email format (400 if invalid)
 - `email` must be unique across all users (409 if already taken)
 - Users are created with `active: true` by default
-- `createdAt` is set automatically (ISO 8601 timestamp), immutable after creation
+- `created_at` is set automatically (ISO 8601 timestamp), immutable after creation
 
 ### User Update
 - User must exist (404 if not found)
@@ -23,7 +23,7 @@
 - Role is optional; if provided it must be one of `admin` or `user` or `moderator` (400 if invalid)
 - If role is not provided, the existing role is preserved (does not revert to default)
 - User not found (404) takes priority over name validation (400)
-- `updatedAt` is refreshed automatically (ISO 8601 timestamp) on every successful update
+- `updated_at` is refreshed automatically (ISO 8601 timestamp) on every successful update
 
 ### User Deletion
 - Deletion is a SOFT delete: the row is kept in the table, only `active` is set to `false`
@@ -90,10 +90,10 @@
 - DELETE non-existent user → 404
 
 ### User Fields — Lifecycle
-- Create a user → response includes `active: true`, `createdAt` timestamp
+- Create a user → response includes `active: true`, `created_at` timestamp
 - List users → inactive users excluded from `GET /users`
 - Retrieve an inactive user by id → still returned via `GET /users/:id`
-- Update a user's name → `updatedAt` changes; `createdAt` stays the same
+- Update a user's name → `updated_at` changes; `created_at` stays the same
 - Create user with duplicate email → 409, user not created
 - Create user with malformed email (`"not-an-email"`) → 400, user not created
 
