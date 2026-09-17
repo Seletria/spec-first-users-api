@@ -86,4 +86,23 @@ test.describe('PUT /users/:id', () => {
     expect(afterSecondUpdate.updated_at).not.toBe(afterFirstUpdate.updated_at);
   });
 
+  test('rejects a request without a body with 400', async ({ request }) => {
+    const { user } = await createUser(request);
+
+    const response = await request.put(`/users/${user.id}`);
+    expect(response.status()).toBe(400);
+  });
+
+  test('rejects a non-boolean active value with 400', async ({ request }) => {
+    const { user } = await createUser(request);
+
+    const response = await request.put(`/users/${user.id}`, {
+      data: {
+        name: user.name,
+        active: 'yes'
+      }
+    });
+    expect(response.status()).toBe(400);
+  });
+
 });

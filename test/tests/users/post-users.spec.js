@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { createUser } = require('../../utils/api.utils');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('POST /users', () => {
 
@@ -20,6 +21,35 @@ test.describe('POST /users', () => {
 
     const body = await response.json();
     expect(body.message).toContain('email');
+  });
+
+  test('rejects a request without a body with 400', async ({ request }) => {
+    const response = await request.post('/users');
+    expect(response.status()).toBe(400);
+  });
+
+  test('rejects a non-boolean active value with 400', async ({ request }) => {
+    const { name, email } = generateTestUser();
+    const response = await request.post('/users', {
+      data: {
+        name,
+        email,
+        active: 'yes'
+      }
+    });
+    expect(response.status()).toBe(400);
+  });
+
+  test('rejects active: null with 400', async ({ request }) => {
+    const { name, email } = generateTestUser();
+    const response = await request.post('/users', {
+      data: {
+        name,
+        email,
+        active: null
+      }
+    });
+    expect(response.status()).toBe(400);
   });
 
   test('rejects a duplicate email with 409', async ({ request }) => {
