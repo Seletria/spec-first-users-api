@@ -1,11 +1,13 @@
 const { test, expect } = require('@playwright/test');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('Active Status', () => {
-  test('POST /users with active status "true" is accepted and saved as given', async ({ request }) => {
+  test('POST /users with no active status is saved as active', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const response = await request.post('/users', {
       data: {
-        name: 'Jane Doe',
-        email: 'active.default@example.com',
+        name,
+        email,
       }
     });
     expect(response.status()).toBe(201);
@@ -14,17 +16,15 @@ test.describe('Active Status', () => {
   });
 
   test('GET /users excludes inactive users from the list', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Inactive User',
-        email: 'inactive.default@example.com'
+        name,
+        email
       }
     });
 
     const created = await createResponse.json();
-    // ASSUMPTION: PUT /users/:id accepts `active` to toggle status.
-    // Not explicitly defined in BUSINESS-LOGIC.md's User Update section —
-    // flagging for the fix implementation to confirm/implement this path.
 
     await request.put(`/users/${created.id}`, {
       data: {
@@ -40,15 +40,15 @@ test.describe('Active Status', () => {
   });
 
   test('GET /users/:id still returns an inactive user', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Inactive But Fetchable User',
-        email: 'inactive.fetchable@example.com'
+        name,
+        email
       }
     });
 
     const created = await createResponse.json();
-    // Same assumption as above regarding PUT accepting `active`.
     await request.put(`/users/${created.id}`, {
       data: {
         name: created.name,

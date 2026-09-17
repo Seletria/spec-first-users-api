@@ -1,12 +1,14 @@
 const { test, expect } = require('@playwright/test');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('Role Validation - Extended Enum', () => {
 
   test('POST /users with role "moderator" is accepted and saved as given', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const response = await request.post('/users', {
       data: {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
+        name,
+        email,
         role: 'moderator'
       }
     });
@@ -23,4 +25,3 @@ test.describe('Role Validation - Extended Enum', () => {
 
 
 });
-

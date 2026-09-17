@@ -1,22 +1,25 @@
 const { test, expect } = require('@playwright/test');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('Email Validation', () => {
   test('POST /users with valid email format is accepted and saved as given', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const response = await request.post('/users', {
       data: {
-        name: 'John Doe',
-        email: 'valid.email@example.com'
+        name,
+        email
       }
     });
     expect(response.status()).toBe(201);
     const body = await response.json();
-    expect(body.email).toBe('valid.email@example.com');
+    expect(body.email).toBe(email);
   });
 
   test('POST /users with invalid email format is rejected', async ({ request }) => {
+    const { name } = generateTestUser();
     const response = await request.post('/users', {
       data: {
-        name: 'Invalid Email User',
+        name,
         email: 'invalid-email-format.com'
       }
     });
@@ -27,46 +30,49 @@ test.describe('Email Validation', () => {
   });
 
   test('POST /users with not unique email is rejected', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Unique Email User',
-        email: 'unique.email@example.com'
+        name,
+        email
       }
     });
     expect(createResponse.status()).toBe(201);
 
     const duplicateResponse = await request.post('/users', {
       data: {
-        name: 'Duplicate Email User',
-        email: 'unique.email@example.com'
+        name: `${name} Duplicate`,
+        email
       }
     });
     expect(duplicateResponse.status()).toBe(409);
   });
 
   test('POST /users with duplicate email in different case is rejected', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Case Sensitive Email User',
-        email: 'case.duplicate@example.com'
+        name,
+        email
       }
     });
     expect(createResponse.status()).toBe(201);
 
     const duplicateResponse = await request.post('/users', {
       data: {
-        name: 'Duplicate Email User',
-        email: 'CASE.DUPLICATE@EXAMPLE.COM'
+        name: `${name} Duplicate`,
+        email: email.toUpperCase()
       }
     });
     expect(duplicateResponse.status()).toBe(409);
   });
 
   test('PUT /users/:id without email preserves existing email', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Preserve Email User',
-        email: 'preserve.email@example.com'
+        name,
+        email
       }
     });
     expect(createResponse.status()).toBe(201);
@@ -82,6 +88,6 @@ test.describe('Email Validation', () => {
     const getResponse = await request.get(`/users/${created.id}`);
     expect(getResponse.status()).toBe(200);
     const fetched = await getResponse.json();
-    expect(fetched.email).toBe('preserve.email@example.com');
+    expect(fetched.email).toBe(email);
   });
 });

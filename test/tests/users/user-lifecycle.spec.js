@@ -1,13 +1,15 @@
 const { test, expect } = require('@playwright/test');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('User Lifecycle', () => {
 
   test('POST /users then GET /users/:id returns the created user', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Lifecycle Create User',
+        name,
         role: 'admin',
-        email: 'lifecycle.create@example.com'
+        email
       }
     });
     expect(createResponse.status()).toBe(201);
@@ -17,23 +19,24 @@ test.describe('User Lifecycle', () => {
     expect(getResponse.status()).toBe(200);
     const fetched = await getResponse.json();
 
-    expect(fetched.name).toBe('Lifecycle Create User');
+    expect(fetched.name).toBe(name);
     expect(fetched.role).toBe('admin');
   });
 
   test('PUT /users/:id then GET /users/:id returns updated data', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Lifecycle Original Name',
+        name,
         role: 'user',
-        email: 'lifecycle.original@example.com'
+        email
       }
     });
     const created = await createResponse.json();
 
     const updateResponse = await request.put(`/users/${created.id}`, {
       data: {
-        name: 'Lifecycle Updated Name',
+        name: `${name} Updated`,
         role: 'admin'
       }
     });
@@ -43,16 +46,17 @@ test.describe('User Lifecycle', () => {
     expect(getResponse.status()).toBe(200);
     const fetched = await getResponse.json();
 
-    expect(fetched.name).toBe('Lifecycle Updated Name');
+    expect(fetched.name).toBe(`${name} Updated`);
     expect(fetched.role).toBe('admin');
   });
 
-  test('DELETE /users/:id then GET /users/:id returns 404', async ({ request }) => {
+  test('DELETE /users/:id soft-deletes and GET /users/:id still returns the user', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Lifecycle Delete User',
+        name,
         role: 'user',
-        email: 'lifecycle.delete@example.com'
+        email
       }
     });
     const created = await createResponse.json();
@@ -61,15 +65,18 @@ test.describe('User Lifecycle', () => {
     expect(deleteResponse.status()).toBe(204);
 
     const getResponse = await request.get(`/users/${created.id}`);
-    expect(getResponse.status()).toBe(404);
+    expect(getResponse.status()).toBe(200);
+    const fetched = await getResponse.json();
+    expect(fetched.active).toBe(false);
   });
 
-  test('DELETE /users/:id twice — second call returns 404', async ({ request }) => {
+  test('DELETE /users/:id twice — second call is idempotent and returns 204', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Lifecycle Double Delete User',
+        name,
         role: 'user',
-        email: 'lifecycle.double.delete@example.com'
+        email
       }
     });
     const created = await createResponse.json();
@@ -78,7 +85,7 @@ test.describe('User Lifecycle', () => {
     expect(firstDelete.status()).toBe(204);
 
     const secondDelete = await request.delete(`/users/${created.id}`);
-    expect(secondDelete.status()).toBe(404);
+    expect(secondDelete.status()).toBe(204);
   });
 
 });

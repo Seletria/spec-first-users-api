@@ -1,27 +1,30 @@
 const { test, expect } = require('@playwright/test');
+const { generateTestUser } = require('../../utils/test-data.utils');
 
 test.describe('Timestamps', () => {
 
-  test('POST /users creates user with a valid createdAt timestamp', async ({ request }) => {
+  test('POST /users creates user with a valid created_at timestamp', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const response = await request.post('/users', {
       data: {
-        name: 'example test name',
-        email: 'exampletestname@gmail.com',
+        name,
+        email,
       },
     });
 
     expect(response.status()).toBe(201);
 
     const body = await response.json();
-    expect(body.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
-    expect(new Date(body.createdAt).toString()).not.toBe('Invalid Date');
+    expect(body.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    expect(new Date(body.created_at).toString()).not.toBe('Invalid Date');
   });
 
-  test('PUT /users/:id refreshes updatedAt but keeps createdAt unchanged', async ({ request }) => {
+  test('PUT /users/:id refreshes updated_at but keeps created_at unchanged', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Betty Boop',
-        email: 'bettyboop123@gmail.com'
+        name,
+        email
       }
     });
 
@@ -30,7 +33,7 @@ test.describe('Timestamps', () => {
 
     const updateResponse = await request.put(`/users/${created.id}`, {
       data: {
-        name: 'Betty Boop Updated'
+        name: `${name} Updated`
       }
     });
 
@@ -40,16 +43,17 @@ test.describe('Timestamps', () => {
     expect(getResponse.status()).toBe(200);
 
     const fetched = await getResponse.json();
-    expect(fetched.createdAt).toBe(created.createdAt);
-    expect(fetched.updatedAt).not.toBe(created.updatedAt);
+    expect(fetched.created_at).toBe(created.created_at);
+    expect(fetched.updated_at).not.toBe(created.updated_at);
 
   });
 
-  test('PUT /users/:id twice keeps createdAt unchanged and refreshes updatedAt each time', async ({ request }) => {
+  test('PUT /users/:id twice keeps created_at unchanged and refreshes updated_at each time', async ({ request }) => {
+    const { name, email } = generateTestUser();
     const createResponse = await request.post('/users', {
       data: {
-        name: 'Double Update Test',
-        email: 'doubleupdatetest99@gmail.com'
+        name,
+        email
       }
     });
 
@@ -58,7 +62,7 @@ test.describe('Timestamps', () => {
 
     await new Promise(resolve => setTimeout(resolve, 100));
     const firstUpdateResponse = await request.put(`/users/${created.id}`, {
-      data: { name: 'Double Update Test - First Update' }
+      data: { name: `${name} First Update` }
     });
     expect(firstUpdateResponse.status()).toBe(200);
 
@@ -68,7 +72,7 @@ test.describe('Timestamps', () => {
 
     await new Promise(resolve => setTimeout(resolve, 100));
     const secondUpdateResponse = await request.put(`/users/${created.id}`, {
-      data: { name: 'Double Update Test - Second Update' }
+      data: { name: `${name} Second Update` }
     });
     expect(secondUpdateResponse.status()).toBe(200);
 
@@ -76,10 +80,10 @@ test.describe('Timestamps', () => {
     expect(secondGetResponse.status()).toBe(200);
     const afterSecondUpdate = await secondGetResponse.json();
 
-    expect(afterFirstUpdate.createdAt).toBe(created.createdAt);
-    expect(afterSecondUpdate.createdAt).toBe(created.createdAt);
+    expect(afterFirstUpdate.created_at).toBe(created.created_at);
+    expect(afterSecondUpdate.created_at).toBe(created.created_at);
 
-    expect(afterFirstUpdate.updatedAt).not.toBe(created.updatedAt);
-    expect(afterSecondUpdate.updatedAt).not.toBe(afterFirstUpdate.updatedAt);
+    expect(afterFirstUpdate.updated_at).not.toBe(created.updated_at);
+    expect(afterSecondUpdate.updated_at).not.toBe(afterFirstUpdate.updated_at);
   });
 });
