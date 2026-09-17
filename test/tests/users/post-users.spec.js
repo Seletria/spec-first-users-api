@@ -82,6 +82,12 @@ test.describe('POST /users', () => {
     expect(user.role).toBe('moderator');
   });
 
+  test('normalizes a mixed-case "Moderator" role to lowercase', async ({ request }) => {
+    const { user } = await createUser(request, { role: 'Moderator' });
+
+    expect(user.role).toBe('moderator');
+  });
+
   test('creates a user as active by default', async ({ request }) => {
     const { user } = await createUser(request);
 
