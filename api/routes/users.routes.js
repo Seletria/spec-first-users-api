@@ -9,6 +9,7 @@ const MESSAGES = {
   EMAIL_REQUIRED: 'Email is required and must be a valid email address',
   EMAIL_TAKEN: 'Email is already taken',
   INVALID_ID: 'Invalid user id',
+  INVALID_ACTIVE: 'Active must be a boolean',
 };
 
 const isValidId = (id) => {
@@ -29,6 +30,10 @@ const isValidName = (name) => {
 const isValidRole = (role) => {
   if (typeof role !== 'string') return false;
   return VALID_ROLES.includes(normalizeRole(role));
+};
+
+const isValidActive = (active) => {
+  return active === undefined || typeof active === 'boolean';
 };
 
 const normalizeRole = (role) => {
@@ -57,7 +62,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { name, role, active, email } = req.body;
+  const { name, role, active, email } = req.body ?? {};
 
   if (!isValidName(name)) {
     return res.status(400).json({ message: MESSAGES.NAME_REQUIRED });
@@ -71,6 +76,10 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ message: MESSAGES.INVALID_ROLE });
   }
 
+  if (!isValidActive(active)) {
+    return res.status(400).json({ message: MESSAGES.INVALID_ACTIVE });
+  }
+
   const normalizedRole = role !== undefined ? normalizeRole(role) : 'user';
   const resolvedActive = active !== undefined ? active : true;
 
@@ -80,7 +89,7 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const id = Number(req.params.id);
-  const { name, role, active, email } = req.body;
+  const { name, role, active, email } = req.body ?? {};
 
   if (!isValidId(id)) {
     return res.status(400).json({ message: MESSAGES.INVALID_ID });
@@ -98,6 +107,10 @@ router.put('/:id', async (req, res) => {
 
   if (role !== undefined && !isValidRole(role)) {
     return res.status(400).json({ message: MESSAGES.INVALID_ROLE });
+  }
+
+  if (!isValidActive(active)) {
+    return res.status(400).json({ message: MESSAGES.INVALID_ACTIVE });
   }
 
   const normalizedRole = role !== undefined ? normalizeRole(role) : undefined;
