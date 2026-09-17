@@ -2,14 +2,6 @@ const express = require('express');
 const { createUser, getAllUsers, getUserById, updateUser, deactivateUser } = require('../repository/users.repository');
 const router = express.Router();
 
-const SEED_TIMESTAMP = new Date('2026-01-01T00:00:00.000Z').toISOString();
-
-const users = [
-  { id: 1, name: 'Ayşe', role: 'admin', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP },
-  { id: 2, name: 'Mehmet', role: 'user', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP },
-  { id: 3, name: 'Zeynep', role: 'user', active: true, createdAt: SEED_TIMESTAMP, updatedAt: SEED_TIMESTAMP }
-];
-
 const MESSAGES = {
   NAME_REQUIRED: 'Name is required and must be a non-empty string',
   USER_NOT_FOUND: 'User not found',
