@@ -20,7 +20,7 @@ test.describe('POST /users', () => {
     expect(response.status()).toBe(400);
 
     const body = await response.json();
-    expect(body.message).toContain('email');
+    expect(body.message).toBe('Email is required and must be a valid email address');
   });
 
   test('rejects a request without a body with 400', async ({ request }) => {
