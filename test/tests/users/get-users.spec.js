@@ -3,6 +3,20 @@ const { createUser } = require('../../utils/api.utils');
 
 test.describe('GET /users', () => {
 
+  test('includes a newly created active user in the list', async ({ request }) => {
+    const { payload, user } = await createUser(request);
+
+    const listResponse = await request.get('/users');
+    expect(listResponse.status()).toBe(200);
+    const list = await listResponse.json();
+    expect(Array.isArray(list)).toBe(true);
+
+    const found = list.find(item => item.id === user.id);
+    expect(found).toBeDefined();
+    expect(found.email).toBe(payload.email);
+    expect(found.active).toBe(true);
+  });
+
   test('excludes inactive users from the list', async ({ request }) => {
     const { user } = await createUser(request);
 
